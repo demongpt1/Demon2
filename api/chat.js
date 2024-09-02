@@ -1,9 +1,11 @@
-import { OpenAI } from 'openai';
 import dotenv from 'dotenv';
 import { json } from 'micro';
+import pkg from 'openai'; // Import the entire module
+const { OpenAI } = pkg; // Extract OpenAI from the module
 
 dotenv.config();
 
+// Create an OpenAI client instance
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
