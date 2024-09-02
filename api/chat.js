@@ -1,11 +1,11 @@
 import dotenv from 'dotenv';
 import { json } from 'micro';
 import pkg from 'openai'; // Import the entire module
+
 const { OpenAI } = pkg; // Extract OpenAI from the module
 
 dotenv.config();
 
-// Create an OpenAI client instance
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
@@ -16,8 +16,8 @@ export default async function handler(req, res) {
       const { userMessage } = await json(req);
 
       // Create a new thread
-      const thread = await openai.threads.create();
-      const threadId = thread.id;
+      const threadResponse = await openai.threads.create();
+      const threadId = threadResponse.id;
 
       // Send the user's message
       await openai.threads.messages.create(threadId, { role: 'user', content: userMessage });
