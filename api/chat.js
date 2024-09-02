@@ -1,5 +1,6 @@
 import OpenAI from 'openai';
 import dotenv from 'dotenv';
+import { json } from 'micro';
 
 dotenv.config();
 
@@ -9,20 +10,17 @@ const openai = new OpenAI({
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
-    const { userMessage } = req.body;
-
     try {
+      const { userMessage } = await json(req);
+
       // Create a new thread
       const thread = await openai.beta.threads.create();
       const threadId = thread.id;
 
       // Send the user's message
-      await openai.beta.threads.messages.create(
-        threadId,
-        { role: 'user', content: userMessage }
-      );
+      await openai.beta.threads.messages.create(threadId, { role: 'user', content: userMessage });
 
-      // Create and run the thread
+      // Create and run the assistant
       const stream = await openai.beta.threads.createAndRun({
         assistant_id: process.env.ASSISTANT_ID,
         thread: { messages: [{ role: 'user', content: userMessage }] },
@@ -36,13 +34,13 @@ export default async function handler(req, res) {
         }
       }
 
+      // Respond with the assistant's message
       res.status(200).json({ response: responseContent });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'An error occurred' });
+      console.error('Error:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
     }
   } else {
-    res.setHeader('Allow', ['POST']);
-    res.status(405).end(`Method ${req.method} Not Allowed`);
+    res.status(405).json({ error: 'Method Not Allowed' });
   }
 }
