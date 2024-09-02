@@ -1,11 +1,10 @@
 import dotenv from 'dotenv';
 import { json } from 'micro';
-import pkg from 'openai'; // Import the entire module
-
-const { OpenAI } = pkg; // Extract OpenAI from the module
+import OpenAI from 'openai'; // Import the default export from 'openai'
 
 dotenv.config();
 
+// Create an OpenAI client instance
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
@@ -14,10 +13,15 @@ export default async function handler(req, res) {
   if (req.method === 'POST') {
     try {
       const { userMessage } = await json(req);
+      
+      if (typeof userMessage !== 'string') {
+        res.status(400).json({ error: 'Invalid request payload' });
+        return;
+      }
 
       // Create a new thread
-      const threadResponse = await openai.threads.create();
-      const threadId = threadResponse.id;
+      const thread = await openai.threads.create();
+      const threadId = thread.id;
 
       // Send the user's message
       await openai.threads.messages.create(threadId, { role: 'user', content: userMessage });
